@@ -9,6 +9,13 @@ typedef struct NODO {
 } NODO;
 
 
+typedef struct{
+
+char nome[20];
+int cont;
+}threadRecord;
+
+
 void pedro(){
  printf("fuckyeahhh\n");
  NODO *minhaThread;
@@ -20,8 +27,18 @@ void pedro(){
 
 void mike(){
 
-printf("eu quero terminar o trabalho de SISOP KCT!\n");
+threadRecord *minhaThread;
+
+minhaThread=  (threadRecord *)malloc(sizeof(threadRecord));
+
+minhaThread->cont=0;
+
+printf("%d\n\n",minhaThread->cont+2);
+
+free(minhaThread);
+
 }
+
 int main(){
 	printf("a \noasijsoisa\nbc \n");
 	mike();
