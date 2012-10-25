@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 
+
 typedef struct NODO {
   int var1;
   float var2;
