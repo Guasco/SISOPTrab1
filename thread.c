@@ -4,6 +4,7 @@
 
 static ucontext_t uctx_main, uctx_func1, uctx_func2;
 
+ucontext_t *Running_thread;
 
 typedef struct Processo {
   int var1;
@@ -21,10 +22,19 @@ typedef struct Processo {
 #define handle_error(msg) \
     do { perror(msg); exit(EXIT_FAILURE); } while (0)
 
+
+
+void yeld(){
+	int swapcontext_result=swapcontext(Running_thread, Running_thread->uc_link);
+}
+
 void
 func1(void)
 {
     printf("func1: started\n");
+    printf("func1: yeld! ill be back!\n");
+	yeld();
+    printf("func1: im back!!\n");
     printf("func1: cya\n");
     // printf("func1: swapcontext(&uctx_func1, &uctx_func2)\n");
     // if (swapcontext(&uctx_func1, &uctx_func2) == -1)
@@ -32,6 +42,8 @@ func1(void)
     // printf("func1: returning\n");
 }
 
+	
+	
 static void
 func2(void)
 {
@@ -55,9 +67,14 @@ Processo* create_thread(  ){
 	return meuProc;
 }
 
+
+
 int start_thread(Processo *meuProc){
 
+
+Running_thread=&meuProc->contexto;
 int swapcontext_result=swapcontext(&meuProc->caller, &meuProc->contexto);
+Running_thread=&meuProc->caller;
 int error_on_swapcontext=0;
 error_on_swapcontext = (swapcontext_result==-1);
 
@@ -67,6 +84,8 @@ if (error_on_swapcontext)
 return swapcontext_result;
 
 }
+
+
 
 
 int main(int argc, char *argv[])
@@ -87,6 +106,8 @@ int main(int argc, char *argv[])
 	
 	
 	printf("main: ill start a thread\n");
+	start_thread(meuProc);
+	printf("main: escalonating\n");
 	start_thread(meuProc);
    
    printf("main: exiting\n");
