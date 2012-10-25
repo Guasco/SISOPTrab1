@@ -4,6 +4,18 @@
 
 static ucontext_t uctx_main, uctx_func1, uctx_func2;
 
+
+typedef struct Processo {
+  int var1;
+  float var2;
+  ucontext_t contexto;
+  int estado;
+  char stack[16384];
+  struct Processo *next;
+  struct Processo *prev;
+  
+} Processo;
+
 #define handle_error(msg) \
     do { perror(msg); exit(EXIT_FAILURE); } while (0)
 
@@ -27,12 +39,36 @@ func2(void)
     printf("func2: returning\n");
 }
 
-int
-main(int argc, char *argv[])
+
+Processo* create_thread(  ){
+	Processo *meuProc;
+	meuProc=(Processo *) malloc(sizeof(Processo) );
+	if (getcontext(&meuProc->contexto ) == -1)
+        handle_error("getcontext");
+	
+	meuProc->contexto.uc_stack.ss_sp=meuProc->stack;
+	meuProc->contexto.uc_stack.ss_size=sizeof(meuProc->stack);
+	
+	
+	return meuProc;
+}
+
+int main(int argc, char *argv[])
 {
     char func1_stack[16384];
     char func2_stack[16384];
-
+	
+	Processo *meuProc;
+	// meuProc=(Processo *) malloc(sizeof(Processo) );
+	
+	// prtContext=&meuProc->contexto;
+	 // if (getcontext(&meuProc->contexto) == -1)
+         // handle_error("getcontext");
+	
+	// meuProc->contexto.uc_stack.ss_sp=meuProc->stack;
+	// meuProc->contexto.uc_stack.ss_size=sizeof(meuProc->stack);
+	meuProc=create_thread();
+	
    if (getcontext(&uctx_func1) == -1)
         handle_error("getcontext");
     uctx_func1.uc_stack.ss_sp = func1_stack;
