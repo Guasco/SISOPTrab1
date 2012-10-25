@@ -9,8 +9,10 @@ typedef struct Processo {
   int var1;
   float var2;
   ucontext_t contexto;
+  ucontext_t caller;
   int estado;
   char stack[16384];
+  
   struct Processo *next;
   struct Processo *prev;
   
@@ -19,7 +21,7 @@ typedef struct Processo {
 #define handle_error(msg) \
     do { perror(msg); exit(EXIT_FAILURE); } while (0)
 
-static void
+void
 func1(void)
 {
     printf("func1: started\n");
@@ -48,16 +50,14 @@ Processo* create_thread(  ){
 	
 	meuProc->contexto.uc_stack.ss_sp=meuProc->stack;
 	meuProc->contexto.uc_stack.ss_size=sizeof(meuProc->stack);
-	
+	meuProc->contexto.uc_link = &meuProc->caller;
+	makecontext(&meuProc->contexto, func1, 0);
 	return meuProc;
 }
 
 int start_thread(Processo *meuProc){
-ucontext_t caller;
 
-meuProc->contexto.uc_link = &caller;
-makecontext(&meuProc->contexto, func1, 0);
-int swapcontext_result=swapcontext(&caller, &meuProc->contexto);
+int swapcontext_result=swapcontext(&meuProc->caller, &meuProc->contexto);
 int error_on_swapcontext=0;
 error_on_swapcontext = (swapcontext_result==-1);
 
@@ -67,6 +67,7 @@ if (error_on_swapcontext)
 return swapcontext_result;
 
 }
+
 
 int main(int argc, char *argv[])
 {
