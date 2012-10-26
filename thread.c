@@ -15,7 +15,7 @@ typedef struct Processo {
   ucontext_t caller;
   int sleeping;
   int estado;
-  char stack[16384];
+  char stack[STACKSIZE];
 
   struct Processo *next;
   struct Processo *prev;
@@ -33,7 +33,7 @@ void yeld(){
 	 Running_thread->sleeping=1;
 	 int swapcontext_result=swapcontext(&Running_thread->contexto, &Running_thread->caller);
 	 Running_thread->sleeping=0;
-	 // Running_thread->
+
 }
 
 int
@@ -44,10 +44,7 @@ func1(void)
 	yeld();
     printf("func1: im back!!\n");
     printf("func1: cya\n");
-    // printf("func1: swapcontext(&uctx_func1, &uctx_func2)\n");
-    // if (swapcontext(&uctx_func1, &uctx_func2) == -1)
-        // handle_error("swapcontext");
-    // printf("func1: returning\n");
+
 }
 
 
@@ -61,46 +58,6 @@ func2(void)
     printf("func2: im back!!\n");
     printf("func2: cya\n");
 }
-
-/////////////////////////////////////
-void funcP( void *arg)
-
-{ int i ;
-
-   printf ("%s iniciada\n", (char *) arg) ;
-
-   for (i=0; i<4; i++)
-   {
-      printf ("%s %d\n", (char *) arg, i) ;
-      swapcontext (&ContextP, &ContextQ);
-   }
-   printf ("%s FIM\n", (char *) arg) ;
-
-   swapcontext (&ContextP, &ContextMain) ;
-}
-
-//////////////////////////////////////////
-
-void funcQ (void * arg)
-{
-   int i ;
-
-   printf ("%s iniciada\n", (char *) arg) ;
-
-   for (i=0; i<4; i++)
-   {
-      printf ("%s %d\n", (char *) arg, i) ;
-      swapcontext (&ContextQ, &ContextP);
-   }
-   printf ("%s FIM\n", (char *) arg) ;
-
-   swapcontext (&ContextQ, &ContextMain) ;
-}
-
-
-
-
-
 
 
 
@@ -142,9 +99,6 @@ return swapcontext_result;
 
 int main(int argc, char *argv[])
 {
-    char func1_stack[16384];
-    char func2_stack[16384];
-    char *stack ;
 
 	Processo *meuProc, *meuProc2;
 
@@ -162,9 +116,7 @@ int main(int argc, char *argv[])
 	printf("Sleep: %d\n", meuProc->sleeping);
 	
 	start_thread(meuProc2);
-
-    printf("main: exiting\n");
-   
+    
     printf("main: exiting\n");
     exit(EXIT_SUCCESS);
 }
