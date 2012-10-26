@@ -37,9 +37,11 @@ void yeld(){
 }
 
 int
-func1(void)
+func1(int um_numero)
 {
+	
     printf("func1: started\n");
+	printf("func1: %d",um_numero);
     printf("func1: yeld! ill be back!\n");
 	yeld();
     printf("func1: im back!!\n");
@@ -65,8 +67,9 @@ func2(void)
 Processo* create_thread( void* func ){
 	Processo *meuProc;
 	meuProc=(Processo *) malloc(sizeof(Processo) );
-	if (getcontext(&meuProc->contexto ) == -1)
+	if (getcontext(&meuProc->contexto ) == -1){
         handle_error("getcontext");
+	}
 
 	meuProc->contexto.uc_stack.ss_sp=meuProc->stack;
 	meuProc->contexto.uc_stack.ss_size=sizeof(meuProc->stack);
