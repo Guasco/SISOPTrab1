@@ -37,11 +37,11 @@ void yeld(){
 }
 
 int
-func1(int um_numero)
+func1(int arg)
 {
 	
     printf("func1: started\n");
-	printf("func1: %d",um_numero);
+	printf("func1: %d\n", arg);
     printf("func1: yeld! ill be back!\n");
 	yeld();
     printf("func1: im back!!\n");
@@ -52,7 +52,7 @@ func1(int um_numero)
 
 
 static void
-func2(void)
+func2()
 {
 	printf("func2: started\n");
     printf("func2: yeld! ill be back!\n");
@@ -64,7 +64,7 @@ func2(void)
 
 
 
-Processo* create_thread( void* func ){
+Processo* create_thread( void* func , void *arg){
 	Processo *meuProc;
 	meuProc=(Processo *) malloc(sizeof(Processo) );
 	if (getcontext(&meuProc->contexto ) == -1){
@@ -75,7 +75,7 @@ Processo* create_thread( void* func ){
 	meuProc->contexto.uc_stack.ss_size=sizeof(meuProc->stack);
 	meuProc->contexto.uc_link = &meuProc->caller;
 	meuProc->sleeping=0;
-	makecontext(&meuProc->contexto, func, 0);
+	makecontext(&meuProc->contexto, func, 1, arg );
 	return meuProc;
 }
 
@@ -104,9 +104,10 @@ int main(int argc, char *argv[])
 {
 
 	Processo *meuProc, *meuProc2;
-
-	meuProc=create_thread(func1);
-	meuProc2=create_thread(func2);
+	
+	int i=500;
+	meuProc=create_thread(func1,(void*)i);
+	meuProc2=create_thread(func2,(void*)i);
 
 
 	printf("main: ill start a thread\n");
