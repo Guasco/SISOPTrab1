@@ -41,10 +41,14 @@ func1(int arg)
 {
 	
     printf("func1: started\n");
-	printf("func1: %d\n", arg);
-    printf("func1: yeld! ill be back!\n");
-	yeld();
-    printf("func1: im back!!\n");
+	
+	int x;
+	for(x=0;x<10;x++){
+	    printf("func1: yeld! ill be back!\n");
+		yeld();
+		printf("func1: im back!!\n");
+	}
+    
     printf("func1: cya\n");
 
 }
@@ -52,10 +56,11 @@ func1(int arg)
 
 
 static void
-func2()
+func2(int meuid)
 {
 	printf("func2: started\n");
     printf("func2: yeld! ill be back!\n");
+	printf("func1: Sou a Thread %d\n", meuid);
 	yeld();
     printf("func2: im back!!\n");
     printf("func2: cya\n");
@@ -74,7 +79,7 @@ Processo* create_thread( void* func , void *arg){
 	meuProc->contexto.uc_stack.ss_sp=meuProc->stack;
 	meuProc->contexto.uc_stack.ss_size=sizeof(meuProc->stack);
 	meuProc->contexto.uc_link = &meuProc->caller;
-	meuProc->sleeping=0;
+	
 	makecontext(&meuProc->contexto, func, 1, arg );
 	return meuProc;
 }
@@ -103,23 +108,42 @@ return swapcontext_result;
 int main(int argc, char *argv[])
 {
 
-	Processo *meuProc, *meuProc2;
+	Processo *meuProc, *meuProc2, *lista[15];
 	
+	int x;
 	int i=500;
-	meuProc=create_thread(func1,(void*)i);
-	meuProc2=create_thread(func2,(void*)i);
-
-
-	printf("main: ill start a thread\n");
-	start_thread(meuProc);
-	printf("Sleep: %d\n", meuProc->sleeping);
-	printf("main: escalonating\n");
-	start_thread(meuProc2);
+	for(x=0;x<15;x++){
+		lista[x]=create_thread(func2,(void *)x);
+		start_thread(lista[x]); //// Tansformar em lista encadeada
+	}
 	
-	start_thread(meuProc);
-	printf("Sleep: %d\n", meuProc->sleeping);
+	int pending_thread=1;
+	while(pending_thread){ 
+		pending_thread=0;
+		for(x=0;x<15;x++){
+			if(lista[x]->sleeping){
+				pending_thread=1;
+				start_thread(lista[x]);
+			}
+		}
+	}
 	
-	start_thread(meuProc2);
+	
+	meuProc=create_thread(func1,(void *)i);
+	meuProc2=create_thread(func2,(void *)i);
+	start_thread(meuProc);
+	
+	
+	
+	while(meuProc->sleeping){
+		if(meuProc->sleeping)
+			start_thread(meuProc);
+
+		if(meuProc2->sleeping)
+			start_thread(meuProc2);
+	}
+	
+
     
     printf("main: exiting\n");
     exit(EXIT_SUCCESS);
