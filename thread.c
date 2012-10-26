@@ -36,7 +36,7 @@ void yeld(){
 	 // Running_thread->
 }
 
-void
+int
 func1(void)
 {
     printf("func1: started\n");
@@ -55,11 +55,11 @@ func1(void)
 static void
 func2(void)
 {
-    printf("func2: started\n");
-    printf("func2: swapcontext(&uctx_func2, &uctx_func1)\n");
-    if (swapcontext(&uctx_func2, &uctx_func1) == -1)
-        handle_error("swapcontext");
-    printf("func2: returning\n");
+	printf("func2: started\n");
+    printf("func2: yeld! ill be back!\n");
+	yeld();
+    printf("func2: im back!!\n");
+    printf("func2: cya\n");
 }
 
 /////////////////////////////////////
@@ -105,7 +105,7 @@ void funcQ (void * arg)
 
 
 
-Processo* create_thread(  ){
+Processo* create_thread( void* func ){
 	Processo *meuProc;
 	meuProc=(Processo *) malloc(sizeof(Processo) );
 	if (getcontext(&meuProc->contexto ) == -1)
@@ -115,7 +115,7 @@ Processo* create_thread(  ){
 	meuProc->contexto.uc_stack.ss_size=sizeof(meuProc->stack);
 	meuProc->contexto.uc_link = &meuProc->caller;
 	meuProc->sleeping=0;
-	makecontext(&meuProc->contexto, func1, 0);
+	makecontext(&meuProc->contexto, func, 0);
 	return meuProc;
 }
 
@@ -146,60 +146,24 @@ int main(int argc, char *argv[])
     char func2_stack[16384];
     char *stack ;
 
-	Processo *meuProc;
+	Processo *meuProc, *meuProc2;
 
-	meuProc=create_thread();
+	meuProc=create_thread(func1);
+	meuProc2=create_thread(func2);
 
 
 	printf("main: ill start a thread\n");
 	start_thread(meuProc);
 	printf("Sleep: %d\n", meuProc->sleeping);
 	printf("main: escalonating\n");
-	start_thread(meuProc);
-
-   printf("main: exiting\n");
- //////////////////////////////////////////////////////
-    getcontext (&ContextP);
-
-   stack = malloc (STACKSIZE) ;
-   if (stack)
-   {
-      ContextP.uc_stack.ss_sp = stack ;
-      ContextP.uc_stack.ss_size = STACKSIZE;
-      ContextP.uc_stack.ss_flags = 0;
-      ContextP.uc_link = 0;
-   }
-   else
-   {
-      perror ("Erro na criação da pilha: ");
-      exit (1);
-   }
-
-   makecontext (&ContextP, (void*)(*funcP), 1, "    P");
-
-   getcontext (&ContextQ);
-
-   stack = malloc (STACKSIZE) ;
-   if (stack)
-   {
-      ContextQ.uc_stack.ss_sp = stack ;
-      ContextQ.uc_stack.ss_size = STACKSIZE;
-      ContextQ.uc_stack.ss_flags = 0;
-      ContextQ.uc_link = 0;
-   }
-   else
-   {
-      perror ("Erro na criação da pilha: ");
-      exit (1);
-   }
-
-   makecontext (&ContextQ, (void*)(*funcQ), 1, "        Q");
-
-   swapcontext (&ContextMain, &ContextP);
-   swapcontext (&ContextMain, &ContextQ);
-
+	start_thread(meuProc2);
 	
+	start_thread(meuProc);
 	printf("Sleep: %d\n", meuProc->sleeping);
+	
+	start_thread(meuProc2);
+
+    printf("main: exiting\n");
    
     printf("main: exiting\n");
     exit(EXIT_SUCCESS);
