@@ -133,11 +133,13 @@ Process* create_thread( void* func , void *arg){
 int run_thread(Process *myProc){
 
 
+Process *Prev_Running_thread=Running_thread;
 
 Running_thread=myProc;
 myProc->state=Running;
-int swapcontext_result=swapcontext(&myProc->caller, &myProc->contexto);
 
+int swapcontext_result=swapcontext(&myProc->caller, &myProc->contexto);
+Running_thread=Prev_Running_thread;
 
 int error_on_swapcontext=0;
 error_on_swapcontext = (swapcontext_result==-1);
@@ -154,19 +156,32 @@ void join_thread(Process *thread_that_must_finish){
 	
 	Process *myRunning_thread;
 	myRunning_thread=ReadyQueue;
+	
+	Process *JoinCaller;
+	JoinCaller=Running_thread;
+	
+	
 	int isJoinInsideaThread=Running_thread!=0;
 	
 	if(isJoinInsideaThread){
-		Running_thread->state=Blocked;
+		JoinCaller->state=Blocked;
 	}
 	
-	
-	while(thread_that_must_finish->state==Ready ){ 
+	while(	thread_that_must_finish->state==Ready 	||  
+			thread_that_must_finish->state==Blocked	
+		){ 
 		if(myRunning_thread->state==Ready){
 			run_thread(myRunning_thread);
 		}
 		myRunning_thread=myRunning_thread->next;
 	}
+	
+	if(isJoinInsideaThread){
+		Process_debug(JoinCaller);
+		JoinCaller->state=Blocked;
+	}
+	thread_that_must_finish->state=Finished;
+	
 	
 }
 
