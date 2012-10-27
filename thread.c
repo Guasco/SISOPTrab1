@@ -7,27 +7,34 @@ static ucontext_t uctx_main, uctx_func1, uctx_func2;
 
 
 ucontext_t  ContextP, ContextQ, ContextMain;;
+enum{
+Running,
+Blocked,
+Ready,
+Finished
 
-typedef struct Processo {
+};
+
+typedef struct Process {
   int var1;
   float var2;
   ucontext_t contexto;
   ucontext_t caller;
   int sleeping;
-  int estado;
+  int state;
   char stack[STACKSIZE];
 
-  struct Processo *next;
-  struct Processo *prev;
+  struct Process *next;
+  struct Process *prev;
 
-} Processo;
+} Process;
 
 
-void Processo_debug(Processo *meuProc){
-	printf("me %p \n",meuProc);
-	printf("next %p\n",meuProc->next);
-	printf("prev %p\n",meuProc->prev);
-	int suspended=meuProc->sleeping;
+void Process_debug(Process *myProc){
+	printf("me %p \n",myProc);
+	printf("next %p\n",myProc->next);
+	printf("prev %p\n",myProc->prev);
+	int suspended=myProc->sleeping;
 	int finished=!suspended;
 	
 	if(suspended){
@@ -42,7 +49,8 @@ void Processo_debug(Processo *meuProc){
 }
 
 
-Processo *Running_thread=NULL;
+Process *Running_thread=NULL;
+Process *ReadyQueue=NULL;
 
 #define handle_error(msg) \
     do { perror(msg); exit(EXIT_FAILURE); } while (0)
@@ -51,7 +59,9 @@ Processo *Running_thread=NULL;
 
 void yeld(){
 	 Running_thread->sleeping=1;
+	 Running_thread->state=Ready; // Cedeu 
 	 int swapcontext_result=swapcontext(&Running_thread->contexto, &Running_thread->caller);
+	 Running_thread->state=Running; // Recebeu novamente
 	 Running_thread->sleeping=0;
 
 }
@@ -95,34 +105,39 @@ func2(int meuid)
 
 
 
-Processo* create_thread( void* func , void *arg){
-	Processo *meuProc;
-	int its_first_thread_created = !Running_thread;
+Process* create_thread( void* func , void *arg){
+	Process *myProc;
+	int its_first_thread_created = !ReadyQueue;
 	
-	meuProc=(Processo *) malloc(sizeof(Processo) );
-	if (getcontext(&meuProc->contexto ) == -1){
+	myProc=(Process *) malloc(sizeof(Process) );
+	if (getcontext(&myProc->contexto ) == -1){
         handle_error("getcontext");
 	}
 	
 	if(its_first_thread_created){
-		Running_thread=meuProc;
+		ReadyQueue=myProc;
 	}
-	// Processo_debug(Running_thread);
-	meuProc->sleeping=1;
-	meuProc->contexto.uc_stack.ss_sp=meuProc->stack;
-	meuProc->contexto.uc_stack.ss_size=sizeof(meuProc->stack);
-	meuProc->contexto.uc_link = &meuProc->caller;
-	makecontext(&meuProc->contexto, func, 1, arg );
-	return meuProc;
+	// Process_debug(Running_thread);
+	myProc->sleeping=1;
+	myProc->state=Ready;
+	
+	myProc->contexto.uc_stack.ss_sp=myProc->stack;
+	myProc->contexto.uc_stack.ss_size=sizeof(myProc->stack);
+	myProc->contexto.uc_link = &myProc->caller;
+	makecontext(&myProc->contexto, func, 1, arg );
+	return myProc;
 }
 
 
 
-int start_thread(Processo *meuProc){
+int run_thread(Process *myProc){
 
 
-Running_thread=meuProc;
-int swapcontext_result=swapcontext(&meuProc->caller, &meuProc->contexto);
+
+Running_thread=myProc;
+myProc->state=Running;
+int swapcontext_result=swapcontext(&myProc->caller, &myProc->contexto);
+
 
 int error_on_swapcontext=0;
 error_on_swapcontext = (swapcontext_result==-1);
@@ -135,16 +150,24 @@ return swapcontext_result;
 }
 
 
-void join_thread(Processo *thread_that_must_finish){
+void join_thread(Process *thread_that_must_finish){
 	
-	Processo *Running;
-	Running=Running_thread;
-	while(thread_that_must_finish->sleeping ){ 
-		if(Running->sleeping){
-			start_thread(Running);
-		}
-		Running=Running->next;
+	Process *myRunning_thread;
+	myRunning_thread=ReadyQueue;
+	int isJoinInsideaThread=Running_thread!=0;
+	
+	if(isJoinInsideaThread){
+		Running_thread->state=Blocked;
 	}
+	
+	
+	while(thread_that_must_finish->state==Ready ){ 
+		if(myRunning_thread->state==Ready){
+			run_thread(myRunning_thread);
+		}
+		myRunning_thread=myRunning_thread->next;
+	}
+	
 }
 
 
@@ -153,7 +176,7 @@ void join_thread(Processo *thread_that_must_finish){
 int main(int argc, char *argv[])
 {
 
-	Processo *lista[15];
+	Process *lista[15];
 	
 	int x;
 	int i=500;
@@ -172,9 +195,9 @@ int main(int argc, char *argv[])
 		lista[x]->prev=lista[x-1];
 	}
 	
-	// Processo_debug(Running_thread);	
+	// Process_debug(Running_thread);	
 	join_thread(lista[7]);
-	Processo_debug(lista[7]);
+	Process_debug(lista[7]);
 	printf("main: le escalonateur, its me, ill join again\n");
 	join_thread(lista[10]);
 	
@@ -184,17 +207,17 @@ int main(int argc, char *argv[])
 	
 	
 	
-	// meuProc=create_thread(func1,(void *)i);
-	// meuProc2=create_thread(func2,(void *)i);
+	// myProc=create_thread(func1,(void *)i);
+	// myProc2=create_thread(func2,(void *)i);
 	
-	// start_thread(meuProc);
+	// start_thread(myProc);
 	
-	// while(meuProc->sleeping){
-		// if(meuProc->sleeping)
-			// start_thread(meuProc);
+	// while(myProc->sleeping){
+		// if(myProc->sleeping)
+			// start_thread(myProc);
 
-		// if(meuProc2->sleeping)
-			// start_thread(meuProc2);
+		// if(myProc2->sleeping)
+			// start_thread(myProc2);
 	// }
 	
 
