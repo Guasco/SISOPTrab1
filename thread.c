@@ -66,43 +66,6 @@ void yeld(){
 
 }
 
-int
-func1(int arg)
-{
-	
-    printf("func1: started\n");
-	
-	int x;
-	for(x=0;x<10;x++){
-	    printf("func1: yeld! ill be back!\n");
-		yeld();
-		printf("func1: im back!!\n");
-	}
-    
-    printf("func1: cya\n");
-
-}
-
-
-
-static void
-func2(int meuid)
-{
-	int x=0;
-	printf("Thread%d started\n", meuid);
-	 for(x=2;x<meuid;x++){
-		printf("Thread%d computation %d\n",meuid, x);
-		printf("Thread%d yeld! ill be back!\n", meuid);
-		yeld();
-		printf("Thread%d im back!!\n", meuid);
-	}		
-	printf("Thread%d near finishing, but not now.\n", meuid);
-	yeld();
-	
-    printf("Thread%d cya\n", meuid);
-}
-
-
 
 
 Process* create_thread( void* func , void *arg){
@@ -182,8 +145,54 @@ void join_thread(Process *thread_that_must_finish){
 	}
 	thread_that_must_finish->state=Finished;
 	
-	
 }
+
+Process *lista[15];
+
+int func1(int arg)
+{
+	
+    printf("func1: started\n");
+	
+	
+	
+	int x;
+	for(x=0;x<10;x++){
+	    printf("func1: yeld! ill be back!\n");
+		yeld();
+		printf("func1: im back!!\n");
+	}
+    
+    printf("func1: cya\n");
+
+}
+
+
+
+static void
+func2(int meuid)
+{
+	int x=0;
+	
+	if(meuid==6){
+		printf("Thread%d i need wait Thread8 finish, then i back\n", meuid);
+		join_thread(lista[8]);
+		printf("Thread%d the Thread8 has finished, here i go again\n", meuid);
+	}
+	
+	printf("Thread%d started\n", meuid);
+	 for(x=2;x<meuid;x++){
+		printf("Thread%d computation %d\n",meuid, x);
+		printf("Thread%d yeld! ill be back!\n", meuid);
+		yeld();
+		printf("Thread%d im back!!\n", meuid);
+	}		
+	printf("Thread%d near finishing, but not now.\n", meuid);
+	yeld();
+	
+    printf("Thread%d cya\n", meuid);
+}
+
 
 
 
@@ -191,7 +200,7 @@ void join_thread(Process *thread_that_must_finish){
 int main(int argc, char *argv[])
 {
 
-	Process *lista[15];
+	
 	
 	int x;
 	int i=500;
