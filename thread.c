@@ -80,12 +80,15 @@ func2(int meuid)
 {
 	int x=0;
 	printf("Thread%d started\n", meuid);
-	for(x=0;x<meuid;x++){
-		printf("Thread%d computation %i\n",x);
+	 for(x=2;x<meuid;x++){
+		printf("Thread%d computation %d\n",meuid, x);
 		printf("Thread%d yeld! ill be back!\n", meuid);
 		yeld();
 		printf("Thread%d im back!!\n", meuid);
-	}
+	}		
+	printf("Thread%d near finishing, but not now.\n", meuid);
+	yeld();
+	
     printf("Thread%d cya\n", meuid);
 }
 
@@ -133,22 +136,15 @@ return swapcontext_result;
 
 
 void join_thread(Processo *thread_that_must_finish){
-
-	int exist_pending_thread=1;
+	
 	Processo *Running;
-	
 	Running=Running_thread;
-	
-	// Running=thread_that_must_finish;
-	while(exist_pending_thread && thread_that_must_finish->sleeping ){ 
-		Running=Running->next;
-		exist_pending_thread=0;
+	while(thread_that_must_finish->sleeping ){ 
 		if(Running->sleeping){
-			exist_pending_thread=1;
 			start_thread(Running);
 		}
+		Running=Running->next;
 	}
-
 }
 
 
@@ -157,7 +153,7 @@ void join_thread(Processo *thread_that_must_finish){
 int main(int argc, char *argv[])
 {
 
-	Processo *meuProc, *meuProc2, *lista[15];
+	Processo *lista[15];
 	
 	int x;
 	int i=500;
@@ -176,8 +172,9 @@ int main(int argc, char *argv[])
 		lista[x]->prev=lista[x-1];
 	}
 	
-	Processo_debug(Running_thread);	
+	// Processo_debug(Running_thread);	
 	join_thread(lista[7]);
+	Processo_debug(lista[7]);
 	printf("main: le escalonateur, its me, ill join again\n");
 	join_thread(lista[10]);
 	
