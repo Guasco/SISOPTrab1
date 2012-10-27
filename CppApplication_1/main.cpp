@@ -1,6 +1,7 @@
 #include <ucontext.h>
 #include <stdio.h>
 #include <stdlib.h>
+
 #define STACKSIZE 32768
 
 static ucontext_t uctx_main, uctx_func1, uctx_func2;
@@ -74,7 +75,7 @@ Processo* create_thread( void* func , void *arg){
 	if (getcontext(&meuProc->contexto ) == -1){
         handle_error("getcontext");
 	}
-
+        
 	meuProc->contexto.uc_stack.ss_sp=meuProc->stack;
 	meuProc->contexto.uc_stack.ss_size=sizeof(meuProc->stack);
 	meuProc->contexto.uc_link = &meuProc->caller;
@@ -114,20 +115,9 @@ int main(int argc, char *argv[])
 	for(x=0;x<15;x++){
 		lista[x]=create_thread(func2,(void *)x);
 	}
-
-	//Lista fake prototipo
-	lista[0]->next=lista[1];
-	lista[0]->prev=lista[14];
-	lista[14]->next=lista[0];
-	lista[14]->prev=lista[13];
-
 	for(x=1;x<14;x++){
-		lista[x]->next=lista[x+1];
-		lista[x]->prev=lista[x-1];
+		lista[x]->next
 	}
-	
-	
-	
 	
 	for(x=0;x<15;x++){
 		start_thread(lista[x]); //// Tansformar em lista encadeada
@@ -147,16 +137,17 @@ int main(int argc, char *argv[])
 	
 	meuProc=create_thread(func1,(void *)i);
 	meuProc2=create_thread(func2,(void *)i);
+	start_thread(meuProc);
 	
-	// start_thread(meuProc);
 	
-	// while(meuProc->sleeping){
-		// if(meuProc->sleeping)
-			// start_thread(meuProc);
+	
+	while(meuProc->sleeping){
+		if(meuProc->sleeping)
+			start_thread(meuProc);
 
-		// if(meuProc2->sleeping)
-			// start_thread(meuProc2);
-	// }
+		if(meuProc2->sleeping)
+			start_thread(meuProc2);
+	}
 	
 
     
