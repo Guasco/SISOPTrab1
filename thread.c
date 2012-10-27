@@ -74,7 +74,7 @@ Processo* create_thread( void* func , void *arg){
 	if (getcontext(&meuProc->contexto ) == -1){
         handle_error("getcontext");
 	}
-
+	meuProc->sleeping=1;
 	meuProc->contexto.uc_stack.ss_sp=meuProc->stack;
 	meuProc->contexto.uc_stack.ss_size=sizeof(meuProc->stack);
 	meuProc->contexto.uc_link = &meuProc->caller;
@@ -126,27 +126,23 @@ int main(int argc, char *argv[])
 		lista[x]->prev=lista[x-1];
 	}
 	
-	
-	
-	
-	for(x=0;x<15;x++){
-		start_thread(lista[x]); //// Tansformar em lista encadeada
-	}
-	
+		
 	int pending_thread=1;
+	Processo *Running;
+	Running=lista[14];
 	while(pending_thread){ 
+		Running=Running->next;
 		pending_thread=0;
-		for(x=0;x<15;x++){
-			if(lista[x]->sleeping){
-				pending_thread=1;
-				start_thread(lista[x]);
-			}
+		if(lista[x]->sleeping){
+			pending_thread=1;
+			start_thread(Running);
 		}
+	
 	}
 	
 	
-	meuProc=create_thread(func1,(void *)i);
-	meuProc2=create_thread(func2,(void *)i);
+	// meuProc=create_thread(func1,(void *)i);
+	// meuProc2=create_thread(func2,(void *)i);
 	
 	// start_thread(meuProc);
 	
