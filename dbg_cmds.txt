@@ -1,0 +1,4 @@
+file a.out
+run
+backtrace
+quit
