@@ -1,14 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "uthread.h"
+#include "../include/uthread.h"
 
 Process *lista[15];
-
 int func1(int arg)
 {
-	
     printf("func1: started\n");
-	
 	int x;
 	for(x=0;x<10;x++){
 	    printf("func1: yeld! ill be back!\n");
@@ -100,6 +97,6 @@ int main(int argc, char *argv[])
 
     
     printf("main: exiting\n");
-	fila_tests();
+	// fila_tests();
     exit(EXIT_SUCCESS);
 }

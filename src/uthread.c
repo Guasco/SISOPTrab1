@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "uthread.h"
+#include "../include/uthread.h"
 #define STACKSIZE 32768
-
 
 int last_thread_id=0;
 void Process_debug(Process *myProc){
