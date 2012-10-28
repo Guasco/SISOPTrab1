@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #define STACKSIZE 32768
 
-static ucontext_t uctx_main, uctx_func1, uctx_func2;
+// static ucontext_t uctx_main, uctx_func1, uctx_func2;
 
 
 ucontext_t  ContextP, ContextQ, ContextMain;;
@@ -14,13 +14,16 @@ Ready,
 Finished
 
 };
+static char *enumDesc[] = {"Running", "Blocked", "Ready","Finished" };
+int last_thread_id=0;
 
 typedef struct Process {
   int var1;
+  int id;
   float var2;
   ucontext_t contexto;
   ucontext_t caller;
-  int sleeping;
+  // int sleeping;
   int state;
   char stack[STACKSIZE];
 
@@ -31,19 +34,14 @@ typedef struct Process {
 
 
 void Process_debug(Process *myProc){
-	printf("me %p \n",myProc);
-	printf("next %p\n",myProc->next);
-	printf("prev %p\n",myProc->prev);
-	int suspended=myProc->sleeping;
-	int finished=!suspended;
 	
-	if(suspended){
-		printf("Suspended ");
-	}
-	if(finished){
-		printf("Finished ");
-	}
-	printf("\n");
+	printf("Thread = {  \n");
+	printf("	   id = %i \n",myProc->id);
+	printf("	 next = %i\n",myProc->next->id);
+	printf("	 prev = %i\n",myProc->prev->id);
+	// int suspended=myProc->sleeping;
+	printf("	state = %s \n",enumDesc[myProc->state]);
+	printf("} \n");
 	
 
 }
@@ -58,11 +56,11 @@ Process *ReadyQueue=NULL;
 
 
 void yeld(){
-	 Running_thread->sleeping=1;
+	 // Running_thread->sleeping=1;
 	 Running_thread->state=Ready; // Cedeu 
-	 int swapcontext_result=swapcontext(&Running_thread->contexto, &Running_thread->caller);
+	 swapcontext(&Running_thread->contexto, &Running_thread->caller);
 	 Running_thread->state=Running; // Recebeu novamente
-	 Running_thread->sleeping=0;
+	 // Running_thread->sleeping=0;
 
 }
 
@@ -77,11 +75,12 @@ Process* create_thread( void* func , void *arg){
         handle_error("getcontext");
 	}
 	
+	myProc->id=last_thread_id++;
 	if(its_first_thread_created){
 		ReadyQueue=myProc;
 	}
 	// Process_debug(Running_thread);
-	myProc->sleeping=1;
+	// myProc->sleeping=1;
 	myProc->state=Ready;
 	
 	myProc->contexto.uc_stack.ss_sp=myProc->stack;
@@ -96,21 +95,26 @@ Process* create_thread( void* func , void *arg){
 int run_thread(Process *myProc){
 
 
-Process *Prev_Running_thread=Running_thread;
+	Process *Prev_Running_thread=Running_thread;
 
-Running_thread=myProc;
-myProc->state=Running;
+	Running_thread=myProc;
+	myProc->state=Running;
 
-int swapcontext_result=swapcontext(&myProc->caller, &myProc->contexto);
-Running_thread=Prev_Running_thread;
+	int swapcontext_result=swapcontext(&myProc->caller, &myProc->contexto);
+	if(myProc->state==Running){
+		myProc->state=Finished;
+	}
+	// Process_debug(myProc);
+	
+	Running_thread=Prev_Running_thread;
 
-int error_on_swapcontext=0;
-error_on_swapcontext = (swapcontext_result==-1);
+	int error_on_swapcontext=0;
+	error_on_swapcontext = (swapcontext_result==-1);
 
-if (error_on_swapcontext)
-        handle_error("swapcontext");
+	if (error_on_swapcontext)
+			handle_error("swapcontext");
 
-return swapcontext_result;
+	return swapcontext_result;
 
 }
 
@@ -164,6 +168,7 @@ int func1(int arg)
 	}
     
     printf("func1: cya\n");
+	return 0;
 
 }
 
@@ -203,7 +208,6 @@ int main(int argc, char *argv[])
 	
 	
 	int x;
-	int i=500;
 	for(x=0;x<15;x++){
 		lista[x]=create_thread(func2,(void *)x);
 	}
@@ -247,5 +251,6 @@ int main(int argc, char *argv[])
 
     
     printf("main: exiting\n");
+	
     exit(EXIT_SUCCESS);
 }
