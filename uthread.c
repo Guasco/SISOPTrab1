@@ -82,14 +82,14 @@ void Debug_elemento(struct elemento *myElemento){
 
 
 
-void fila_tests(){
-	printf("teste de fila\n");
-	Fila *myFila;
-	struct elemento *myElemento;
-	myFila= criaFila();
-	myElemento=criaElemento();
-	Debug_elemento(myElemento);
-}
+// void fila_tests(){
+	// printf("teste de fila\n");
+	// Fila *myFila;
+	// struct elemento *myElemento;
+	// myFila= criaFila();
+	// myElemento=criaElemento();
+	// Debug_elemento(myElemento);
+// }
 
 	
 void uthread_yield(){

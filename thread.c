@@ -1,35 +1,23 @@
 #include <ucontext.h>
 #include <stdio.h>
 #include <stdlib.h>
-<<<<<<< HEAD
 #include "uthread.h"
-=======
 #include <string.h>
->>>>>>> Funcao Fila
 #define STACKSIZE 32768
-
-
 
 ucontext_t  ContextP, ContextQ, ContextMain;;
 
 int last_thread_id=0;
 
 void Process_debug(Process *myProc){
-<<<<<<< HEAD
-=======
 
->>>>>>> Funcao Fila
 	printf("Thread = {  \n");
 	printf("	   id = %i \n",myProc->id);
 	printf("	 next = %i\n",myProc->next->id);
 	printf("	 prev = %i\n",myProc->prev->id);
 	printf("	state = %s \n",enumDesc[myProc->state]);
 	printf("} \n");
-<<<<<<< HEAD
-=======
 
-
->>>>>>> Funcao Fila
 }
 
 
@@ -40,14 +28,7 @@ Process *ReadyQueue=NULL;
     do { perror(msg); exit(EXIT_FAILURE); } while (0)
 ///Fila
 
-<<<<<<< HEAD
 
-struct fila *criaFila(){
-	struct fila *ptrFila = (struct fila *) malloc(sizeof(struct fila));
-    ptrFila->primeiro = ptrFila->ultimo = NULL;
-    ptrFila->contador=FILA_VAZIA;
-    return(ptrFila);
-=======
 typedef struct registro{
    char nome[20];
    int num;
@@ -125,7 +106,7 @@ void Desenqueue(Fila **fila, Fila **ult){
          }
       }
    }
->>>>>>> Funcao Fila
+
 }
 
 /*FUNCAO CONSULTA*/
@@ -203,22 +184,19 @@ void Debug_elemento(struct elemento *myElemento){
 
 
 
-void fila_tests(){
-	printf("teste de fila\n");
-	Fila *myFila;
-	struct elemento *myElemento;
-	myFila= criaFila();
-	myElemento=criaElemento();
-	Debug_elemento(myElemento);
-}
+// void fila_tests(){
+	// printf("teste de fila\n");
+	// Fila *myFila;
+	// struct elemento *myElemento;
+	// myFila= criaFila();
+	// myElemento=criaElemento();
+	// Debug_elemento(myElemento);
+// }
 
-<<<<<<< HEAD
+
 	
 void uthread_yield(){
-=======
 
-void yeld(){
->>>>>>> Funcao Fila
 	 // Running_thread->sleeping=1;
 	 Running_thread->state=Ready; // Cedeu
 	 swapcontext(&Running_thread->contexto, &Running_thread->caller);
@@ -355,13 +333,10 @@ func2(int meuid)
 		printf("Thread%d im back!!\n", meuid);
 	}
 	printf("Thread%d near finishing, but not now.\n", meuid);
-<<<<<<< HEAD
+
 	uthread_yield();
 	
-=======
-	yeld();
 
->>>>>>> Funcao Fila
     printf("Thread%d cya\n", meuid);
 }
 
@@ -418,6 +393,6 @@ int main(int argc, char *argv[])
 
 
     printf("main: exiting\n");
-	fila_tests();
+	// fila_tests();
     exit(EXIT_SUCCESS);
 }

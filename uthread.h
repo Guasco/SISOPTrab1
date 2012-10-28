@@ -45,7 +45,7 @@ void Process_debug(Process *myProc);
     do { perror(msg); exit(EXIT_FAILURE); } while (0)
 
 
-typedef struct fila Fila;
+// typedef struct fila Fila;
 
 //funcao para armazenar a estutura base na fila
 struct fila *criaFila();
