@@ -55,6 +55,170 @@ Process *ReadyQueue=NULL;
 
 
 
+	
+#define TAMANHO_NOME 30
+#define FILA_VAZIA -1
+
+
+
+struct elemento {char *nome;
+
+                 int valor;
+
+                 struct elemento *proximo;
+
+                 struct elemento *anterior;
+
+                 };
+
+
+
+
+
+struct fila {
+
+    struct elemento *primeiro;
+
+    struct elemento  *ultimo;
+
+    int contador;
+
+    };
+
+
+
+
+
+typedef struct fila Fila;
+
+
+
+//funcao para armazenar a estutura base na fila
+
+
+
+struct fila *criaFila(){
+
+
+
+struct fila *ptrFila = (struct fila *) malloc(sizeof(struct fila));
+
+    ptrFila->primeiro = ptrFila->ultimo = NULL;
+
+    ptrFila->contador=FILA_VAZIA;
+
+    return(ptrFila);
+
+
+
+}
+
+
+
+//* Função para armazenar um elemento da fila */
+
+
+
+struct elemento *criaElemento() {
+
+
+
+    struct elemento *ptrElemento = (struct elemento *) malloc(sizeof(struct elemento));
+
+    ptrElemento->nome = (char *) malloc(sizeof(char) * TAMANHO_NOME);
+
+    ptrElemento->anterior = ptrElemento->proximo = NULL;
+
+    return(ptrElemento);
+
+}
+
+
+
+
+
+/* Função que insere um elemento na fila */
+
+
+
+int insereElemento (struct elemento* ptrElemento, struct fila* ptrFila, int posicao)
+
+{
+
+    int i;
+
+    struct elemento *ptrAux = NULL;
+
+
+
+/* Checando se a posicão é valida */
+
+
+
+if ((posicao > ptrFila->contador+1) || (posicao < 0)) return(-1);
+
+
+
+/* Iniciando a insercão */
+
+/* Se for inserir na primeira posicão e já há elementos */
+
+
+
+    else if ((!posicao) && (ptrFila->contador > FILA_VAZIA))
+
+    {
+
+        ptrElemento->proximo = ptrFila->primeiro;
+
+        ptrFila->primeiro = ptrElemento;
+
+        ptrElemento->proximo->anterior = ptrElemento;
+
+        ptrFila->contador++;
+
+        ptrElemento->valor = 1;
+
+        ptrElemento = ptrElemento->proximo;
+
+        for (;ptrElemento; ptrElemento = ptrElemento->proximo)
+
+            ptrElemento->valor++;
+
+    }
+
+
+
+/* Inserindo na última posicão */
+
+else if (posicao == ptrFila->contador+1) {
+
+    ptrFila->ultimo->proximo = ptrElemento;
+
+    ptrElemento->anterior = ptrFila->ultimo;
+
+    ptrFila->ultimo = ptrElemento;
+
+    ptrFila->contador++;
+
+    ptrElemento->valor = posicao + 1;
+
+}
+
+
+
+/* Ocorreu algum erro */
+
+else return(-2);
+
+/* Não ocorrram erros. Finalizando */
+
+return(0);
+
+
+
+}
+	
 void yeld(){
 	 // Running_thread->sleeping=1;
 	 Running_thread->state=Ready; // Cedeu 
