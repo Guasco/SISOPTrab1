@@ -78,7 +78,6 @@ typedef struct fila Fila;
 
 //funcao para armazenar a estutura base na fila
 struct fila *criaFila(){
-
 	struct fila *ptrFila = (struct fila *) malloc(sizeof(struct fila));
     ptrFila->primeiro = ptrFila->ultimo = NULL;
     ptrFila->contador=FILA_VAZIA;
@@ -127,9 +126,11 @@ if ((posicao > ptrFila->contador+1) || (posicao < 0)) return(-1);
 	return(0);
 }
 void Debug_elemento(struct elemento *myElemento){
-	printf("elemento= {");
-	printf("	next: %p", myElemento->proximo);
-	printf("	prev: %p", myElemento->anterior);
+	printf("elemento= {\n");
+	printf("	valor: %i\n", myElemento->valor);
+	printf("	 next: %p\n", myElemento->proximo);
+	printf("	 prev: %p\n", myElemento->anterior);
+	printf("}");
 	
 
 }
@@ -142,6 +143,7 @@ void fila_tests(){
 	struct elemento *myElemento;
 	myFila= criaFila();
 	myElemento=criaElemento();
+	Debug_elemento(myElemento);
 }
 
 	
