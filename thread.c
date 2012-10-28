@@ -120,9 +120,6 @@ struct fila *ptrFila = (struct fila *) malloc(sizeof(struct fila));
 
 
 struct elemento *criaElemento() {
-
-
-
     struct elemento *ptrElemento = (struct elemento *) malloc(sizeof(struct elemento));
 
     ptrElemento->nome = (char *) malloc(sizeof(char) * TAMANHO_NOME);
@@ -217,6 +214,15 @@ return(0);
 
 
 
+}
+
+
+void fila_tests(){
+	printf("teste de fila\n");
+	Fila *myFila;
+	elemento *myElemento;
+	myFila= criaFila();
+	myElemento=criaElemento();
 }
 	
 void yeld(){
@@ -415,6 +421,6 @@ int main(int argc, char *argv[])
 
     
     printf("main: exiting\n");
-	
+	fila_tests();
     exit(EXIT_SUCCESS);
 }
