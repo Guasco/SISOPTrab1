@@ -9,8 +9,6 @@ int func1(int arg)
 	
     printf("func1: started\n");
 	
-	
-	
 	int x;
 	for(x=0;x<10;x++){
 	    printf("func1: yeld! ill be back!\n");

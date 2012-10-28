@@ -179,7 +179,6 @@ void Debug_elemento(struct elemento *myElemento){
 	printf("	 prev: %p\n", myElemento->anterior);
 	printf("}");
 
-
 }
 
 
