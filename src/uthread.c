@@ -4,6 +4,7 @@
 #define STACKSIZE 32768
 
 int last_thread_id=0;
+static char *enumDesc[] = {"Running", "Blocked", "Ready","Finished" };
 void Process_debug(Process *myProc){
 	printf("Thread = {  \n");
 	printf("	   id = %i \n",myProc->id);
@@ -12,6 +13,9 @@ void Process_debug(Process *myProc){
 	printf("	state = %s \n",enumDesc[myProc->state]);
 	printf("} \n");
 }
+
+
+
 
 
 Process *Running_thread=NULL;
@@ -38,8 +42,8 @@ struct elemento *criaElemento() {
 /* Função que insere um elemento na fila */
 
 int insereElemento (struct elemento* ptrElemento, struct fila* ptrFila, int posicao){
-	int i;
-    struct elemento *ptrAux = NULL;
+	// int i;
+    // struct elemento *ptrAux = NULL;
 /* Checando se a posicão é valida */
 if ((posicao > ptrFila->contador+1) || (posicao < 0)) return(-1);
 /* Iniciando a insercão */

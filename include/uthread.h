@@ -11,7 +11,7 @@ Ready,
 Finished
 
 };
-static char *enumDesc[] = {"Running", "Blocked", "Ready","Finished" };
+
 typedef struct Process {
   int var1;
   int id;

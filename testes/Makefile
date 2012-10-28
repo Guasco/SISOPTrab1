@@ -1,6 +1,6 @@
-make: testes_thread.c ../src/uthread.c 
-	gcc -c testes_thread.c ../src/uthread.c 
-	gcc -o testes_thread testes_thread.o uthread.o
+make: testes_thread.c ../lib/libuthread.a
+	gcc -g -Wall -c testes_thread.c -o ../bin/testes_thread.o
+	gcc -o ../bin/testes_thread ../bin/testes_thread.o -L../lib -luthread
 
 clean:
-	rm testes_thread testes_thread.o uthread.o
+	rm ../bin/testes_thread ../bin/testes_thread.o
