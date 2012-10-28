@@ -26,6 +26,11 @@ void inicializa(Fila **fila, Fila **ult){
 
 
 /*FUNCAO ENFILEIRA*/
+//  void enqueue ( Fila* , Elemento* )
+//	Recebe Fila que ja existe, nao cria fila
+// Recebe elemento pronto, nao cria elemento
+//  Poe o elemento no fim da fila
+
 
 void enqueue(Fila **fila, Fila **ult){
    Fila *novoFunc;
@@ -58,6 +63,10 @@ void enqueue(Fila **fila, Fila **ult){
 
 /*FUNCAO DESENFILEIRA*/
 
+// Desenqueue(Fila) = Retorna ponteiro do primeiro elemento
+//  					Tira o primeiro elemento da fila
+//						Passa o topo da fila para o segundo elemento
+
 void Desenqueue(Fila **fila, Fila **ult){
    Fila *pont;
    int numero;
@@ -81,6 +90,10 @@ void Desenqueue(Fila **fila, Fila **ult){
    }
 }
 
+
+// consulta(fila) Retorna ponteiro para o primeiro elemento da fila
+// Nao altera nada na fila
+// Nao imprime nada
 void consulta(Fila *fila, Fila *ult){
    int numero;
 
@@ -99,6 +112,12 @@ void consulta(Fila *fila, Fila *ult){
       }
    }
 }
+
+
+// Funcao skip
+// skip(Fila)
+// Passa o primeiro elemento para o fim da fila
+
 
 
 filaTeste(){
