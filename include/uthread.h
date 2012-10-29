@@ -55,6 +55,12 @@ struct elemento *criaElemento();
 /* Função que insere um elemento na fila */
 
 int insereElemento (struct elemento* ptrElemento, struct fila* ptrFila, int posicao);
+void SetTop(Process **queue, Process *element);
+int push(Process **queue, Process *element);
+void remove_element_from_queue(Process *element);
+void SetBlocked(Process *myProc);
+void SetReady(Process *myProc);
+void Debug_queue(Process *queue);
 
 void Debug_elemento(struct elemento *myElemento);
 

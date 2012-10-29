@@ -5,11 +5,11 @@
 
 int last_thread_id=0;
 static char *enumDesc[] = {"Running", "Blocked", "Ready","Finished" };
-void Process_debug(Process *myProc){
+void Debug_process(Process *myProc){
 	printf("Thread = {  \n");
 	printf("	   id = %i \n",myProc->id);
-	printf("	 next = %i\n",myProc->next->id);
-	printf("	 prev = %i\n",myProc->prev->id);
+	if(myProc->next) printf("	 next = %i\n",myProc->next->id);
+	if(myProc->prev)printf("	 prev = %i\n",myProc->prev->id);
 	printf("	state = %s \n",enumDesc[myProc->state]);
 	printf("} \n");
 }
@@ -20,6 +20,7 @@ void Process_debug(Process *myProc){
 
 Process *Running_thread=NULL;
 Process *ReadyQueue=NULL;
+Process *BlockedQueue=NULL;
 
 #define handle_error(msg) \
     do { perror(msg); exit(EXIT_FAILURE); } while (0)
@@ -40,6 +41,9 @@ struct elemento *criaElemento() {
     return(ptrElemento);
 }
 /* Função que insere um elemento na fila */
+
+
+
 
 int insereElemento (struct elemento* ptrElemento, struct fila* ptrFila, int posicao){
 	// int i;
@@ -171,6 +175,7 @@ void join_thread(Process *thread_that_must_finish){
 	
 	if(isJoinInsideaThread){
 		JoinCaller->state=Blocked;
+		SetBlocked(JoinCaller);
 	}
 	
 	while(	thread_that_must_finish->state==Ready 	||  
@@ -183,10 +188,121 @@ void join_thread(Process *thread_that_must_finish){
 	}
 	
 	if(isJoinInsideaThread){
-		Process_debug(JoinCaller);
+		// Process_debug(JoinCaller);
 		JoinCaller->state=Blocked;
 	}
 	thread_that_must_finish->state=Finished;
 	
 }
 
+void SetTop(Process **queue, Process *element){
+	if(*queue==NULL){
+		element->next=element;
+		element->prev=element;
+		
+	}
+	*queue=element;
+}
+
+int push(Process **queue, Process *element){
+	if(*queue==NULL){
+		*queue=element;
+		element->next=element;
+		element->prev=element;
+		
+	}else{
+		Process *first;
+		Process *last;
+		first=*queue;
+		last=first->prev;
+
+		element->next=first;
+		element->prev=last;
+		last->next=element;
+		first->prev=element;
+	}
+	return 0;
+
+}
+
+
+
+void remove_element_from_queue(Process *element){
+	int isElementOnQueue=element && element->next && element->prev;
+	if(isElementOnQueue){
+		Process *nextElement=element->next;
+		Process *prevElement=element->prev;
+		
+		nextElement->prev=prevElement;
+		prevElement->next=nextElement;
+		element->next=NULL;
+		element->prev=NULL;
+	}
+}
+
+void SetBlocked(Process *myProc){
+remove_element_from_queue(myProc);
+push(&BlockedQueue,myProc);
+
+}
+
+
+void SetReady(Process *myProc){
+remove_element_from_queue(myProc);
+push(&ReadyQueue,myProc);
+
+}
+
+void Debug_queue(Process *queue){
+		printf("Queue = {\n");
+		printf("	First= %p",queue);
+		if(queue) printf("	id= %d\n",queue->id);
+		if(queue) printf("	Next= %p   id=%d \n",queue->next,queue->next->id);
+		if(queue) printf("	Last= %p   id=%d \n",queue->prev,queue->prev->id);
+		printf("}\n");
+		
+}
+
+
+
+
+
+int main(){
+	Process *myProc;
+	Process *myProc2;
+	Process *myProc3;
+	Process *myProc4;
+	
+	myProc=(Process *) malloc(sizeof(Process) );
+	myProc2=(Process *) malloc(sizeof(Process) );
+	myProc3=(Process *) malloc(sizeof(Process) );
+	myProc4=(Process *) malloc(sizeof(Process) );
+	myProc->id=1;
+	myProc2->id=2;
+	myProc3->id=3;
+	myProc4->id=4;
+	push(&ReadyQueue,myProc);
+	push(&ReadyQueue,myProc2);
+	push(&ReadyQueue,myProc3);
+	push(&ReadyQueue,myProc4);
+	printf("Quatro elementos em uma fila {1,2,3,4}\n");
+	Debug_queue(ReadyQueue);
+	
+	printf("Elemento 2 bloqueado ReadyQueue= {1,3,4}\n");
+	SetBlocked(myProc2);
+	Debug_queue(ReadyQueue);
+	printf("\n\nBlockedQueue= {1,3,4}\n");
+	Debug_queue(BlockedQueue);
+	SetReady(myProc2);
+	
+	printf("Elemento 2 voltou Ready ReadyQueue= {1,3,4,2}\n");
+	Debug_queue(ReadyQueue);
+	
+	
+	
+	// Debug_process(myProc2);
+	
+	
+	
+	return 0;
+}
