@@ -1,0 +1,237 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/1999/REC-html401-19991224/strict.dtd">
+<html>
+<head>
+<META http-equiv=Content-Type content="text/html; charset=windows-1252">
+<title>Exported from Notepad++</title>
+<style type="text/css">
+span {
+	font-family: 'Courier New';
+	font-size: 10pt;
+	font-weight: bold;
+	color: #000000;
+}
+.sc0 {
+}
+.sc1 {
+	color: #008000;
+}
+.sc2 {
+	color: #008000;
+}
+.sc4 {
+	color: #FF8000;
+}
+.sc5 {
+	color: #0000FF;
+}
+.sc6 {
+	color: #808080;
+}
+.sc9 {
+	color: #804000;
+}
+.sc10 {
+	color: #000080;
+}
+.sc11 {
+}
+.sc16 {
+	color: #8000FF;
+}
+</style>
+</head>
+<body>
+<div style="float: left; white-space: pre; line-height: 1; background: #C9C2AF; "><span class="sc9">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include "../include/uthread.h"
+#define STACKSIZE 32768
+</span><span class="sc0">
+</span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">last_thread_id</span><span class="sc10">=</span><span class="sc4">0</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc16">static</span><span class="sc0"> </span><span class="sc16">char</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">enumDesc</span><span class="sc10">[]</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc10">{</span><span class="sc6">"Running"</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc6">"Blocked"</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc6">"Ready"</span><span class="sc10">,</span><span class="sc6">"Finished"</span><span class="sc0"> </span><span class="sc10">};</span><span class="sc0">
+</span><span class="sc16">void</span><span class="sc0"> </span><span class="sc11">Process_debug</span><span class="sc10">(</span><span class="sc11">Process</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">myProc</span><span class="sc10">){</span><span class="sc0">
+    </span><span class="sc11">printf</span><span class="sc10">(</span><span class="sc6">"Thread = {  \n"</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">printf</span><span class="sc10">(</span><span class="sc6">"       id = %i \n"</span><span class="sc10">,</span><span class="sc11">myProc</span><span class="sc10">-&gt;</span><span class="sc11">id</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">printf</span><span class="sc10">(</span><span class="sc6">"     next = %i\n"</span><span class="sc10">,</span><span class="sc11">myProc</span><span class="sc10">-&gt;</span><span class="sc11">next</span><span class="sc10">-&gt;</span><span class="sc11">id</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">printf</span><span class="sc10">(</span><span class="sc6">"     prev = %i\n"</span><span class="sc10">,</span><span class="sc11">myProc</span><span class="sc10">-&gt;</span><span class="sc11">prev</span><span class="sc10">-&gt;</span><span class="sc11">id</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">printf</span><span class="sc10">(</span><span class="sc6">"    state = %s \n"</span><span class="sc10">,</span><span class="sc11">enumDesc</span><span class="sc10">[</span><span class="sc11">myProc</span><span class="sc10">-&gt;</span><span class="sc11">state</span><span class="sc10">]);</span><span class="sc0">
+    </span><span class="sc11">printf</span><span class="sc10">(</span><span class="sc6">"} \n"</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc10">}</span><span class="sc0">
+
+
+
+
+
+</span><span class="sc11">Process</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">Running_thread</span><span class="sc10">=</span><span class="sc5">NULL</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc11">Process</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">ReadyQueue</span><span class="sc10">=</span><span class="sc5">NULL</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc9">#define handle_error(msg) \
+    do { perror(msg); exit(EXIT_FAILURE); } while (0)
+</span><span class="sc0">
+
+</span><span class="sc16">struct</span><span class="sc0"> </span><span class="sc11">fila</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">criaFila</span><span class="sc10">(){</span><span class="sc0">
+    </span><span class="sc16">struct</span><span class="sc0"> </span><span class="sc11">fila</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">ptrFila</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc16">struct</span><span class="sc0"> </span><span class="sc11">fila</span><span class="sc0"> </span><span class="sc10">*)</span><span class="sc0"> </span><span class="sc11">malloc</span><span class="sc10">(</span><span class="sc5">sizeof</span><span class="sc10">(</span><span class="sc16">struct</span><span class="sc0"> </span><span class="sc11">fila</span><span class="sc10">));</span><span class="sc0">
+    </span><span class="sc11">ptrFila</span><span class="sc10">-&gt;</span><span class="sc11">primeiro</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">ptrFila</span><span class="sc10">-&gt;</span><span class="sc11">ultimo</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc5">NULL</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">ptrFila</span><span class="sc10">-&gt;</span><span class="sc11">contador</span><span class="sc10">=</span><span class="sc11">FILA_VAZIA</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc5">return</span><span class="sc10">(</span><span class="sc11">ptrFila</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc10">}</span><span class="sc0">
+</span><span class="sc2">//* Função para armazenar um elemento da fila */
+</span><span class="sc0">
+</span><span class="sc16">struct</span><span class="sc0"> </span><span class="sc11">elemento</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">criaElemento</span><span class="sc10">()</span><span class="sc0"> </span><span class="sc10">{</span><span class="sc0">
+    </span><span class="sc16">struct</span><span class="sc0"> </span><span class="sc11">elemento</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">ptrElemento</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc16">struct</span><span class="sc0"> </span><span class="sc11">elemento</span><span class="sc0"> </span><span class="sc10">*)</span><span class="sc0"> </span><span class="sc11">malloc</span><span class="sc10">(</span><span class="sc5">sizeof</span><span class="sc10">(</span><span class="sc16">struct</span><span class="sc0"> </span><span class="sc11">elemento</span><span class="sc10">));</span><span class="sc0">
+    </span><span class="sc11">ptrElemento</span><span class="sc10">-&gt;</span><span class="sc11">nome</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc16">char</span><span class="sc0"> </span><span class="sc10">*)</span><span class="sc0"> </span><span class="sc11">malloc</span><span class="sc10">(</span><span class="sc5">sizeof</span><span class="sc10">(</span><span class="sc16">char</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">TAMANHO_NOME</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">ptrElemento</span><span class="sc10">-&gt;</span><span class="sc11">anterior</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">ptrElemento</span><span class="sc10">-&gt;</span><span class="sc11">proximo</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc5">NULL</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc5">return</span><span class="sc10">(</span><span class="sc11">ptrElemento</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc10">}</span><span class="sc0">
+</span><span class="sc1">/* Função que insere um elemento na fila */</span><span class="sc0">
+
+</span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">insereElemento</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc16">struct</span><span class="sc0"> </span><span class="sc11">elemento</span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">ptrElemento</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc16">struct</span><span class="sc0"> </span><span class="sc11">fila</span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">ptrFila</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">posicao</span><span class="sc10">){</span><span class="sc0">
+    </span><span class="sc2">// int i;
+</span><span class="sc0">    </span><span class="sc2">// struct elemento *ptrAux = NULL;
+</span><span class="sc1">/* Checando se a posicão é valida */</span><span class="sc0">
+</span><span class="sc5">if</span><span class="sc0"> </span><span class="sc10">((</span><span class="sc11">posicao</span><span class="sc0"> </span><span class="sc10">&gt;</span><span class="sc0"> </span><span class="sc11">ptrFila</span><span class="sc10">-&gt;</span><span class="sc11">contador</span><span class="sc10">+</span><span class="sc4">1</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">||</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">posicao</span><span class="sc0"> </span><span class="sc10">&lt;</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">))</span><span class="sc0"> </span><span class="sc5">return</span><span class="sc10">(-</span><span class="sc4">1</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc1">/* Iniciando a insercão */</span><span class="sc0">
+</span><span class="sc1">/* Se for inserir na primeira posicão e já há elementos */</span><span class="sc0">
+    </span><span class="sc5">else</span><span class="sc0"> </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc10">((!</span><span class="sc11">posicao</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">&amp;&amp;</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">ptrFila</span><span class="sc10">-&gt;</span><span class="sc11">contador</span><span class="sc0"> </span><span class="sc10">&gt;</span><span class="sc0"> </span><span class="sc11">FILA_VAZIA</span><span class="sc10">)){</span><span class="sc0">
+        </span><span class="sc11">ptrElemento</span><span class="sc10">-&gt;</span><span class="sc11">proximo</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">ptrFila</span><span class="sc10">-&gt;</span><span class="sc11">primeiro</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">ptrFila</span><span class="sc10">-&gt;</span><span class="sc11">primeiro</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">ptrElemento</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">ptrElemento</span><span class="sc10">-&gt;</span><span class="sc11">proximo</span><span class="sc10">-&gt;</span><span class="sc11">anterior</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">ptrElemento</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">ptrFila</span><span class="sc10">-&gt;</span><span class="sc11">contador</span><span class="sc10">++;</span><span class="sc0">
+        </span><span class="sc11">ptrElemento</span><span class="sc10">-&gt;</span><span class="sc11">valor</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">ptrElemento</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">ptrElemento</span><span class="sc10">-&gt;</span><span class="sc11">proximo</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc5">for</span><span class="sc0"> </span><span class="sc10">(;</span><span class="sc11">ptrElemento</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">ptrElemento</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">ptrElemento</span><span class="sc10">-&gt;</span><span class="sc11">proximo</span><span class="sc10">)</span><span class="sc0">
+            </span><span class="sc11">ptrElemento</span><span class="sc10">-&gt;</span><span class="sc11">valor</span><span class="sc10">++;</span><span class="sc0">
+    </span><span class="sc10">}</span><span class="sc0">
+</span><span class="sc1">/* Inserindo na última posicão */</span><span class="sc0">
+    </span><span class="sc5">else</span><span class="sc0"> </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">posicao</span><span class="sc0"> </span><span class="sc10">==</span><span class="sc0"> </span><span class="sc11">ptrFila</span><span class="sc10">-&gt;</span><span class="sc11">contador</span><span class="sc10">+</span><span class="sc4">1</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">{</span><span class="sc0">
+        </span><span class="sc11">ptrFila</span><span class="sc10">-&gt;</span><span class="sc11">ultimo</span><span class="sc10">-&gt;</span><span class="sc11">proximo</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">ptrElemento</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">ptrElemento</span><span class="sc10">-&gt;</span><span class="sc11">anterior</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">ptrFila</span><span class="sc10">-&gt;</span><span class="sc11">ultimo</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">ptrFila</span><span class="sc10">-&gt;</span><span class="sc11">ultimo</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">ptrElemento</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">ptrFila</span><span class="sc10">-&gt;</span><span class="sc11">contador</span><span class="sc10">++;</span><span class="sc0">
+        </span><span class="sc11">ptrElemento</span><span class="sc10">-&gt;</span><span class="sc11">valor</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">posicao</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc10">}</span><span class="sc0">
+    </span><span class="sc1">/* Ocorreu algum erro */</span><span class="sc0">
+    </span><span class="sc5">else</span><span class="sc10">{</span><span class="sc0">
+        </span><span class="sc5">return</span><span class="sc10">(-</span><span class="sc4">2</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc10">}</span><span class="sc0"> 
+    </span><span class="sc1">/* Não ocorrram erros. Finalizando */</span><span class="sc0">
+    </span><span class="sc5">return</span><span class="sc10">(</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc10">}</span><span class="sc0">
+</span><span class="sc16">void</span><span class="sc0"> </span><span class="sc11">Debug_elemento</span><span class="sc10">(</span><span class="sc16">struct</span><span class="sc0"> </span><span class="sc11">elemento</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">myElemento</span><span class="sc10">){</span><span class="sc0">
+    </span><span class="sc11">printf</span><span class="sc10">(</span><span class="sc6">"elemento= {\n"</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">printf</span><span class="sc10">(</span><span class="sc6">"    valor: %i\n"</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">myElemento</span><span class="sc10">-&gt;</span><span class="sc11">valor</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">printf</span><span class="sc10">(</span><span class="sc6">"     next: %p\n"</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">myElemento</span><span class="sc10">-&gt;</span><span class="sc11">proximo</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">printf</span><span class="sc10">(</span><span class="sc6">"     prev: %p\n"</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">myElemento</span><span class="sc10">-&gt;</span><span class="sc11">anterior</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">printf</span><span class="sc10">(</span><span class="sc6">"}"</span><span class="sc10">);</span><span class="sc0">
+    
+
+</span><span class="sc10">}</span><span class="sc0">
+
+
+
+</span><span class="sc2">// void fila_tests(){
+</span><span class="sc0">    </span><span class="sc2">// printf("teste de fila\n");
+</span><span class="sc0">    </span><span class="sc2">// Fila *myFila;
+</span><span class="sc0">    </span><span class="sc2">// struct elemento *myElemento;
+</span><span class="sc0">    </span><span class="sc2">// myFila= criaFila();
+</span><span class="sc0">    </span><span class="sc2">// myElemento=criaElemento();
+</span><span class="sc0">    </span><span class="sc2">// Debug_elemento(myElemento);
+// }
+</span><span class="sc0">
+    
+</span><span class="sc16">void</span><span class="sc0"> </span><span class="sc11">uthread_yield</span><span class="sc10">(){</span><span class="sc0">
+     </span><span class="sc2">// Running_thread-&gt;sleeping=1;
+</span><span class="sc0">     </span><span class="sc11">Running_thread</span><span class="sc10">-&gt;</span><span class="sc11">state</span><span class="sc10">=</span><span class="sc11">Ready</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc2">// Cedeu 
+</span><span class="sc0">     </span><span class="sc11">swapcontext</span><span class="sc10">(&amp;</span><span class="sc11">Running_thread</span><span class="sc10">-&gt;</span><span class="sc11">contexto</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc10">&amp;</span><span class="sc11">Running_thread</span><span class="sc10">-&gt;</span><span class="sc11">caller</span><span class="sc10">);</span><span class="sc0">
+     </span><span class="sc11">Running_thread</span><span class="sc10">-&gt;</span><span class="sc11">state</span><span class="sc10">=</span><span class="sc11">Running</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc2">// Recebeu cpu novamente
+</span><span class="sc0">
+     </span><span class="sc2">// Running_thread-&gt;sleeping=0;
+</span><span class="sc0">
+</span><span class="sc10">}</span><span class="sc0">
+
+</span><span class="sc11">Process</span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">uthread_create</span><span class="sc10">(</span><span class="sc0"> </span><span class="sc16">void</span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">func</span><span class="sc0"> </span><span class="sc10">,</span><span class="sc0"> </span><span class="sc16">void</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">arg</span><span class="sc10">){</span><span class="sc0">
+    </span><span class="sc11">Process</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">myProc</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">its_first_thread_created</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc10">!</span><span class="sc11">ReadyQueue</span><span class="sc10">;</span><span class="sc0">
+    
+    </span><span class="sc11">myProc</span><span class="sc10">=(</span><span class="sc11">Process</span><span class="sc0"> </span><span class="sc10">*)</span><span class="sc0"> </span><span class="sc11">malloc</span><span class="sc10">(</span><span class="sc5">sizeof</span><span class="sc10">(</span><span class="sc11">Process</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">getcontext</span><span class="sc10">(&amp;</span><span class="sc11">myProc</span><span class="sc10">-&gt;</span><span class="sc11">contexto</span><span class="sc0"> </span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">==</span><span class="sc0"> </span><span class="sc10">-</span><span class="sc4">1</span><span class="sc10">){</span><span class="sc0">
+        </span><span class="sc11">handle_error</span><span class="sc10">(</span><span class="sc6">"getcontext"</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc10">}</span><span class="sc0">
+    
+    </span><span class="sc11">myProc</span><span class="sc10">-&gt;</span><span class="sc11">id</span><span class="sc10">=</span><span class="sc11">last_thread_id</span><span class="sc10">++;</span><span class="sc0">
+    </span><span class="sc5">if</span><span class="sc10">(</span><span class="sc11">its_first_thread_created</span><span class="sc10">){</span><span class="sc0">
+        </span><span class="sc11">ReadyQueue</span><span class="sc10">=</span><span class="sc11">myProc</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc10">}</span><span class="sc0">
+    </span><span class="sc2">// Process_debug(Running_thread);
+</span><span class="sc0">    </span><span class="sc2">// myProc-&gt;sleeping=1;
+</span><span class="sc0">    </span><span class="sc11">myProc</span><span class="sc10">-&gt;</span><span class="sc11">state</span><span class="sc10">=</span><span class="sc11">Ready</span><span class="sc10">;</span><span class="sc0">
+    
+    </span><span class="sc11">myProc</span><span class="sc10">-&gt;</span><span class="sc11">contexto</span><span class="sc10">.</span><span class="sc11">uc_stack</span><span class="sc10">.</span><span class="sc11">ss_sp</span><span class="sc10">=</span><span class="sc11">myProc</span><span class="sc10">-&gt;</span><span class="sc11">stack</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">myProc</span><span class="sc10">-&gt;</span><span class="sc11">contexto</span><span class="sc10">.</span><span class="sc11">uc_stack</span><span class="sc10">.</span><span class="sc11">ss_size</span><span class="sc10">=</span><span class="sc5">sizeof</span><span class="sc10">(</span><span class="sc11">myProc</span><span class="sc10">-&gt;</span><span class="sc11">stack</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">myProc</span><span class="sc10">-&gt;</span><span class="sc11">contexto</span><span class="sc10">.</span><span class="sc11">uc_link</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc10">&amp;</span><span class="sc11">myProc</span><span class="sc10">-&gt;</span><span class="sc11">caller</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">makecontext</span><span class="sc10">(&amp;</span><span class="sc11">myProc</span><span class="sc10">-&gt;</span><span class="sc11">contexto</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">func</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">arg</span><span class="sc0"> </span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc5">return</span><span class="sc0"> </span><span class="sc11">myProc</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc10">}</span><span class="sc0">
+
+
+
+</span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">run_thread</span><span class="sc10">(</span><span class="sc11">Process</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">myProc</span><span class="sc10">){</span><span class="sc0">
+
+
+    </span><span class="sc11">Process</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">Prev_Running_thread</span><span class="sc10">=</span><span class="sc11">Running_thread</span><span class="sc10">;</span><span class="sc0">
+
+    </span><span class="sc11">Running_thread</span><span class="sc10">=</span><span class="sc11">myProc</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">myProc</span><span class="sc10">-&gt;</span><span class="sc11">state</span><span class="sc10">=</span><span class="sc11">Running</span><span class="sc10">;</span><span class="sc0">
+
+    </span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">swapcontext_result</span><span class="sc10">=</span><span class="sc11">swapcontext</span><span class="sc10">(&amp;</span><span class="sc11">myProc</span><span class="sc10">-&gt;</span><span class="sc11">caller</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc10">&amp;</span><span class="sc11">myProc</span><span class="sc10">-&gt;</span><span class="sc11">contexto</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc5">if</span><span class="sc10">(</span><span class="sc11">myProc</span><span class="sc10">-&gt;</span><span class="sc11">state</span><span class="sc10">==</span><span class="sc11">Running</span><span class="sc10">){</span><span class="sc0">
+        </span><span class="sc11">myProc</span><span class="sc10">-&gt;</span><span class="sc11">state</span><span class="sc10">=</span><span class="sc11">Finished</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc10">}</span><span class="sc0">
+    </span><span class="sc2">// Process_debug(myProc);
+</span><span class="sc0">    
+    </span><span class="sc11">Running_thread</span><span class="sc10">=</span><span class="sc11">Prev_Running_thread</span><span class="sc10">;</span><span class="sc0">
+
+    </span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">error_on_swapcontext</span><span class="sc10">=</span><span class="sc4">0</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">error_on_swapcontext</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">swapcontext_result</span><span class="sc10">==-</span><span class="sc4">1</span><span class="sc10">);</span><span class="sc0">
+
+    </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">error_on_swapcontext</span><span class="sc10">)</span><span class="sc0">
+            </span><span class="sc11">handle_error</span><span class="sc10">(</span><span class="sc6">"swapcontext"</span><span class="sc10">);</span><span class="sc0">
+
+    </span><span class="sc5">return</span><span class="sc0"> </span><span class="sc11">swapcontext_result</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc10">}</span><span class="sc0">
+
+
+</span><span class="sc16">void</span><span class="sc0"> </span><span class="sc11">join_thread</span><span class="sc10">(</span><span class="sc11">Process</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">thread_that_must_finish</span><span class="sc10">){</span><span class="sc0">
+    
+    </span><span class="sc11">Process</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">myRunning_thread</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">myRunning_thread</span><span class="sc10">=</span><span class="sc11">ReadyQueue</span><span class="sc10">;</span><span class="sc0">
+    
+    </span><span class="sc11">Process</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">JoinCaller</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">JoinCaller</span><span class="sc10">=</span><span class="sc11">Running_thread</span><span class="sc10">;</span><span class="sc0">
+    
+    
+    </span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">isJoinInsideaThread</span><span class="sc10">=</span><span class="sc11">Running_thread</span><span class="sc10">!=</span><span class="sc4">0</span><span class="sc10">;</span><span class="sc0">
+    
+    </span><span class="sc5">if</span><span class="sc10">(</span><span class="sc11">isJoinInsideaThread</span><span class="sc10">){</span><span class="sc0">
+        </span><span class="sc11">JoinCaller</span><span class="sc10">-&gt;</span><span class="sc11">state</span><span class="sc10">=</span><span class="sc11">Blocked</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc10">}</span><span class="sc0">
+    
+    </span><span class="sc5">while</span><span class="sc10">(</span><span class="sc0">  </span><span class="sc11">thread_that_must_finish</span><span class="sc10">-&gt;</span><span class="sc11">state</span><span class="sc10">==</span><span class="sc11">Ready</span><span class="sc0">   </span><span class="sc10">||</span><span class="sc0">  
+            </span><span class="sc11">thread_that_must_finish</span><span class="sc10">-&gt;</span><span class="sc11">state</span><span class="sc10">==</span><span class="sc11">Blocked</span><span class="sc0"> 
+        </span><span class="sc10">){</span><span class="sc0"> 
+        </span><span class="sc5">if</span><span class="sc10">(</span><span class="sc11">myRunning_thread</span><span class="sc10">-&gt;</span><span class="sc11">state</span><span class="sc10">==</span><span class="sc11">Ready</span><span class="sc10">){</span><span class="sc0">
+            </span><span class="sc11">run_thread</span><span class="sc10">(</span><span class="sc11">myRunning_thread</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc10">}</span><span class="sc0">
+        </span><span class="sc11">myRunning_thread</span><span class="sc10">=</span><span class="sc11">myRunning_thread</span><span class="sc10">-&gt;</span><span class="sc11">next</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc10">}</span><span class="sc0">
+    
+    </span><span class="sc5">if</span><span class="sc10">(</span><span class="sc11">isJoinInsideaThread</span><span class="sc10">){</span><span class="sc0">
+        </span><span class="sc11">Process_debug</span><span class="sc10">(</span><span class="sc11">JoinCaller</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">JoinCaller</span><span class="sc10">-&gt;</span><span class="sc11">state</span><span class="sc10">=</span><span class="sc11">Blocked</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc10">}</span><span class="sc0">
+    </span><span class="sc11">thread_that_must_finish</span><span class="sc10">-&gt;</span><span class="sc11">state</span><span class="sc10">=</span><span class="sc11">Finished</span><span class="sc10">;</span><span class="sc0">
+    
+</span><span class="sc10">}</span><span class="sc0">
+
+</span></div></body>
+</html>
