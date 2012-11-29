@@ -57,21 +57,11 @@ int main(int argc, char *argv[])
 	for(x=0;x<15;x++){
 		lista[x]=uthread_create(func2,(void *)x);
 	}
-
-	//Lista fake prototipo
-	lista[0]->next=lista[1];
-	lista[0]->prev=lista[14];
-	lista[14]->next=lista[0];
-	lista[14]->prev=lista[13];
-
-	for(x=1;x<14;x++){
-		lista[x]->next=lista[x+1];
-		lista[x]->prev=lista[x-1];
-	}
+	
 	
 	// Process_debug(Running_thread);	
 	join_thread(lista[7]);
-	Process_debug(lista[7]);
+	Debug_process(lista[7]);
 	printf("main: le escalonateur, its me, ill join again\n");
 	join_thread(lista[10]);
 	

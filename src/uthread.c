@@ -4,8 +4,10 @@
 #define STACKSIZE 32768
 
 int last_thread_id=0;
+int debug=1;
 static char *enumDesc[] = {"Running", "Blocked", "Ready","Finished" };
 void Debug_process(Process *myProc){
+	if(!debug) return;
 	printf("Thread = {  \n");
 	printf("	   id = %i \n",myProc->id);
 	if(myProc->next) printf("	 next = %i\n",myProc->next->id);
@@ -78,6 +80,7 @@ if ((posicao > ptrFila->contador+1) || (posicao < 0)) return(-1);
 	return(0);
 }
 void Debug_elemento(struct elemento *myElemento){
+	if(!debug) return;
 	printf("elemento= {\n");
 	printf("	valor: %i\n", myElemento->valor);
 	printf("	 next: %p\n", myElemento->proximo);
@@ -111,25 +114,24 @@ void uthread_yield(){
 
 Process* uthread_create( void* func , void *arg){
 	Process *myProc;
-	int its_first_thread_created = !ReadyQueue;
-	
 	myProc=(Process *) malloc(sizeof(Process) );
 	if (getcontext(&myProc->contexto ) == -1){
-        handle_error("getcontext");
+        return (Process*)-1;
 	}
 	
 	myProc->id=last_thread_id++;
-	if(its_first_thread_created){
-		ReadyQueue=myProc;
-	}
+	
 	// Process_debug(Running_thread);
 	// myProc->sleeping=1;
-	myProc->state=Ready;
 	
 	myProc->contexto.uc_stack.ss_sp=myProc->stack;
 	myProc->contexto.uc_stack.ss_size=sizeof(myProc->stack);
 	myProc->contexto.uc_link = &myProc->caller;
 	makecontext(&myProc->contexto, func, 1, arg );
+	
+	SetReady(myProc);
+	myProc->state=Ready;
+	
 	return myProc;
 }
 
@@ -162,10 +164,13 @@ int run_thread(Process *myProc){
 }
 
 
-void join_thread(Process *thread_that_must_finish){
+int join_thread(Process *thread_that_must_finish){
 	
-	Process *myRunning_thread;
-	myRunning_thread=ReadyQueue;
+	if(!thread_that_must_finish){
+		return -1;
+	}
+	// Process *myRunning_thread;
+	// myRunning_thread=ReadyQueue;
 	
 	Process *JoinCaller;
 	JoinCaller=Running_thread;
@@ -175,23 +180,31 @@ void join_thread(Process *thread_that_must_finish){
 	
 	if(isJoinInsideaThread){
 		JoinCaller->state=Blocked;
+		// Debug_process(JoinCaller);
 		SetBlocked(JoinCaller);
+		// Debug_process(ReadyQueue);
+		// exit(0);
+		
 	}
 	
-	while(	thread_that_must_finish->state==Ready 	||  
-			thread_that_must_finish->state==Blocked	
+	while(	ReadyQueue && (
+			thread_that_must_finish->state==Ready 	||  
+			thread_that_must_finish->state==Blocked	)
 		){ 
-		if(myRunning_thread->state==Ready){
-			run_thread(myRunning_thread);
+		if(ReadyQueue->state==Ready){
+			run_thread(ReadyQueue);
 		}
-		myRunning_thread=myRunning_thread->next;
+		ReadyQueue=ReadyQueue->next;
+	}
+	if(isJoinInsideaThread){
+		SetReady(JoinCaller);
+		// Process_debug(JoinCaller);
+		JoinCaller->state=Ready;
 	}
 	
-	if(isJoinInsideaThread){
-		// Process_debug(JoinCaller);
-		JoinCaller->state=Blocked;
-	}
 	thread_that_must_finish->state=Finished;
+	
+	return 0;
 	
 }
 
@@ -227,7 +240,9 @@ int push(Process **queue, Process *element){
 
 
 
-void remove_element_from_queue(Process *element){
+void remove_element_from_queue( Process *element){
+	
+	
 	int isElementOnQueue=element && element->next && element->prev;
 	if(isElementOnQueue){
 		Process *nextElement=element->next;
@@ -241,19 +256,39 @@ void remove_element_from_queue(Process *element){
 }
 
 void SetBlocked(Process *myProc){
+
+if(myProc==ReadyQueue){
+	if(ReadyQueue!=ReadyQueue->next)
+		ReadyQueue=ReadyQueue->next;
+	else	
+		ReadyQueue=NULL;
+		
+	
+}
 remove_element_from_queue(myProc);
 push(&BlockedQueue,myProc);
+// Debug_process(myProc);
 
 }
 
 
 void SetReady(Process *myProc){
+
+if(myProc==BlockedQueue){
+	if(BlockedQueue!=BlockedQueue->next)
+		BlockedQueue=BlockedQueue->next;
+	else	
+		BlockedQueue=NULL;
+}
+
 remove_element_from_queue(myProc);
 push(&ReadyQueue,myProc);
+// Debug_process(myProc);
 
 }
 
 void Debug_queue(Process *queue){
+		if(!debug) return;
 		printf("Queue = {\n");
 		printf("	First= %p",queue);
 		if(queue) printf("	id= %d\n",queue->id);
@@ -265,9 +300,7 @@ void Debug_queue(Process *queue){
 
 
 
-
-
-int main(){
+int filas_testes(){
 	Process *myProc;
 	Process *myProc2;
 	Process *myProc3;
@@ -285,17 +318,20 @@ int main(){
 	push(&ReadyQueue,myProc2);
 	push(&ReadyQueue,myProc3);
 	push(&ReadyQueue,myProc4);
+	
+	printf("Este teste demonstra o funcionamento das filas\n");
+	printf("Quatro threads sao criadas e inseridas na fila Ready\n\n");
 	printf("Quatro elementos em uma fila {1,2,3,4}\n");
 	Debug_queue(ReadyQueue);
 	
-	printf("Elemento 2 bloqueado ReadyQueue= {1,3,4}\n");
+	printf("Thread 2 eh bloqueado ReadyQueue= {1,3,4}\n");
 	SetBlocked(myProc2);
 	Debug_queue(ReadyQueue);
-	printf("\n\nBlockedQueue= {1,3,4}\n");
+	printf("\n\nBlockedQueue= {2}\n");
 	Debug_queue(BlockedQueue);
 	SetReady(myProc2);
 	
-	printf("Elemento 2 voltou Ready ReadyQueue= {1,3,4,2}\n");
+	printf("Thread 2 voltou Ready ReadyQueue= {1,3,4,2}\n");
 	Debug_queue(ReadyQueue);
 	
 	

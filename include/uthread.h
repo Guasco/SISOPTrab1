@@ -39,7 +39,7 @@ struct fila {
     int contador;
     };
 
-void Process_debug(Process *myProc);
+void Debug_process(Process *myProc);
 
 #define handle_error(msg) \
     do { perror(msg); exit(EXIT_FAILURE); } while (0)
@@ -57,7 +57,7 @@ struct elemento *criaElemento();
 int insereElemento (struct elemento* ptrElemento, struct fila* ptrFila, int posicao);
 void SetTop(Process **queue, Process *element);
 int push(Process **queue, Process *element);
-void remove_element_from_queue(Process *element);
+void remove_element_from_queue( Process *element);
 void SetBlocked(Process *myProc);
 void SetReady(Process *myProc);
 void Debug_queue(Process *queue);
@@ -71,8 +71,8 @@ void uthread_yield();
 Process* uthread_create( void* func , void *arg);
 
 int run_thread(Process *myProc);
-void join_thread(Process *thread_that_must_finish);
-
+int join_thread(Process *thread_that_must_finish);
+int filas_testes();
 
 
 
