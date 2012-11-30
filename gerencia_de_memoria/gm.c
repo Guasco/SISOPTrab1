@@ -110,8 +110,16 @@ int mv_lru(int this_page, int *frame){
 	
 	int x;
 	for(x=0;x<MAX_FRAME;x++){
-		printf("Frame[%i] Page= %i   FrameTime=%i\n",x,page_on_frame[x],frame_time[x] );
-	
+		printf("Frame[%i] Page= %i   FrameTime=%i ",x,page_on_frame[x],frame_time[x] );
+		if(x==this_frame){
+			if(result){
+				printf(" miss");
+			}else{
+				printf(" hit");
+			}
+		
+		}
+		printf("\n");
 	}
 	printf("\n");
 	return result;
