@@ -7,7 +7,6 @@
 
 
 
-
 int *page_on_frame;
 int *frame_assigned_to_page;
 int *frame_time;
@@ -117,12 +116,8 @@ int mv_lru(int this_page, int *frame){
 	for(x=0;x<MAX_FRAME;x++){
 		printf("Frame[%i] Page= %i   FrameTime=%i ",x,page_on_frame[x],frame_time[x] );
 		if(x==this_frame){
-			if(result){
-				printf(" miss");
-			}else{
-				printf(" hit");
-			}
-		
+			if(result){	printf(" miss");}
+			else{ printf(" hit");}
 		}
 		printf("\n");
 	}
@@ -151,11 +146,8 @@ int mv_fifo(int this_page, int *frame){
 	for(x=0;x<MAX_FRAME;x++){
 		printf("Frame[%i] Page= %i   FrameTime=%i ",x,page_on_frame[x],frame_time[x] );
 		if(page_on_frame[x]==this_page){
-			if(result){
-				printf(" miss");
-			}else{
-				printf(" hit");
-			}
+			if(result){	printf(" miss");}
+			else{ printf(" hit");}
 		
 		}
 		printf("\n");
