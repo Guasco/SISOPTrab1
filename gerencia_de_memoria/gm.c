@@ -15,6 +15,8 @@ int MAX_PAGE=0;
 int MAX_FRAME=0;
 int FRAME_VITIMA=0;
 int mem_time=0;
+int know_oldest=0;
+
 
 ///SELECAO DE MODO///
 int MODE=LRU_MODE;
@@ -70,7 +72,6 @@ int mv_lru(int this_page, int *frame){
 		
 		result =1;
 		int x=0;
-		int know_oldest=frame_time[FRAME_VITIMA]+1;
 		int min=mem_time;
 		int found=0;
 
@@ -91,9 +92,11 @@ int mv_lru(int this_page, int *frame){
 			x++;
 		}
 		
-		printf("page miss %i => %i  vitima(%i)  ",this_page,FRAME_VITIMA, page_vitima);
+		printf("page miss %i =>  vitima frame (%i)  ",this_page,FRAME_VITIMA);
 		frame_assigned_to_page[page_vitima]=SWAP_OUT;
 		this_frame=FRAME_VITIMA;
+		know_oldest=frame_time[FRAME_VITIMA]+1;
+		
 		page_on_frame[FRAME_VITIMA]=this_page;
 		frame_time[this_frame]=mem_time;
 	}/*elseif(HIT)*/else{
