@@ -55,7 +55,6 @@ int mv(int page, int *frame){
 
 }
 #define page_miss(this) frame_assigned_to_page[this]==-1
-#define page_vitima page_on_frame[FRAME_VITIMA]
 #define SWAP_OUT -1
 #define FREE -1
 #define NONE -1
@@ -91,11 +90,7 @@ int mv_lru(int this_page, int *frame){
 			if(page_on_frame[x]==NONE
 			|| frame_time[x]==know_oldest)
 			{
-				// print("page_on_frame[%i]=%i\n",x,page_on_frame[x]);
-				// print("frame_time[x]=%i\n",x,frame_time[x]);
-				// print("frame_time[x]=%i\n",x,frame_time[x]);
 				FRAME_VITIMA=x;
-				// printf("\nx:%i\n",x);
 				found=1;
 			}else if(min>frame_time[x]){
 				min=frame_time[x];
@@ -104,13 +99,9 @@ int mv_lru(int this_page, int *frame){
 			x++;
 		}
 		printf("page miss %i =>  vitima frame (%i)  ",this_page,FRAME_VITIMA);
-
-		// frame_assigned_to_page[page_vitima]=SWAP_OUT;
-		// this_frame=FRAME_VITIMA;
-		// page_on_frame[FRAME_VITIMA]=this_page;
 		
 		set_page_to_frame(this_page,FRAME_VITIMA);
-		
+	
 		know_oldest=frame_time[FRAME_VITIMA]+1;
 		frame_time[this_frame]=mem_time;
 	}/*elseif(HIT)*/else{
@@ -144,17 +135,16 @@ int mv_fifo(int this_page, int *frame){
 	int result=0;
 	
 	if(page_miss(this_page)){
-		printf("page miss page(%i) => frame(%i)  page_out(%i)  \n",this_page,FRAME_VITIMA, page_vitima);
-		// frame_assigned_to_page[page_vitima]=SWAP_OUT;
-		// this_frame=FRAME_VITIMA;
-		// page_on_frame[FRAME_VITIMA]=this_page;
+		printf("page miss page(%i) => frame(%i)  page_out(%i)  \n",this_page,FRAME_VITIMA, page_on_frame[FRAME_VITIMA]);
 		set_page_to_frame(this_page,FRAME_VITIMA);
 		FRAME_VITIMA++;
+		if(FRAME_VITIMA==MAX_FRAME){
+			FRAME_VITIMA=0;
+		}
 		result =1;
 	}else{
 		printf("hit! page(%i) => frame(%i)    \n",this_page,this_frame);
 	}
-	
 	*frame=this_frame;
 
 	int x;
@@ -172,9 +162,7 @@ int mv_fifo(int this_page, int *frame){
 	}
 	printf("\n");
 	
-	if(FRAME_VITIMA==MAX_FRAME){
-		FRAME_VITIMA=0;
-	}
+	
 	return result;
 }
 
