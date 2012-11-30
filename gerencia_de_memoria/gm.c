@@ -61,6 +61,18 @@ int mv(int page, int *frame){
 #define NONE -1
 #define this_frame frame_assigned_to_page[this_page]
 #define print(a)  printf("%i\n",a)
+void set_page_to_frame(int page, int frame){
+
+	int old_page=page_on_frame[frame];
+
+	page_on_frame[frame]=page;
+	frame_assigned_to_page[page]=frame;
+
+	if(old_page!=NONE){
+		frame_assigned_to_page[old_page]=SWAP_OUT;
+	}
+
+}
 
 
 int mv_lru(int this_page, int *frame){
@@ -91,13 +103,15 @@ int mv_lru(int this_page, int *frame){
 			}
 			x++;
 		}
-		
 		printf("page miss %i =>  vitima frame (%i)  ",this_page,FRAME_VITIMA);
-		frame_assigned_to_page[page_vitima]=SWAP_OUT;
-		this_frame=FRAME_VITIMA;
-		know_oldest=frame_time[FRAME_VITIMA]+1;
+
+		// frame_assigned_to_page[page_vitima]=SWAP_OUT;
+		// this_frame=FRAME_VITIMA;
+		// page_on_frame[FRAME_VITIMA]=this_page;
 		
-		page_on_frame[FRAME_VITIMA]=this_page;
+		set_page_to_frame(this_page,FRAME_VITIMA);
+		
+		know_oldest=frame_time[FRAME_VITIMA]+1;
 		frame_time[this_frame]=mem_time;
 	}/*elseif(HIT)*/else{
 		printf("hit! page(%i)    ",this_page,this_frame);
@@ -131,16 +145,33 @@ int mv_fifo(int this_page, int *frame){
 	
 	if(page_miss(this_page)){
 		printf("page miss page(%i) => frame(%i)  page_out(%i)  \n",this_page,FRAME_VITIMA, page_vitima);
-		frame_assigned_to_page[page_vitima]=SWAP_OUT;
-		this_frame=FRAME_VITIMA;
-		page_on_frame[FRAME_VITIMA]=this_page;
-		result =1;
+		// frame_assigned_to_page[page_vitima]=SWAP_OUT;
+		// this_frame=FRAME_VITIMA;
+		// page_on_frame[FRAME_VITIMA]=this_page;
+		set_page_to_frame(this_page,FRAME_VITIMA);
 		FRAME_VITIMA++;
+		result =1;
 	}else{
 		printf("hit! page(%i) => frame(%i)    \n",this_page,this_frame);
 	}
 	
 	*frame=this_frame;
+
+	int x;
+	for(x=0;x<MAX_FRAME;x++){
+		printf("Frame[%i] Page= %i   FrameTime=%i ",x,page_on_frame[x],frame_time[x] );
+		if(page_on_frame[x]==this_page){
+			if(result){
+				printf(" miss");
+			}else{
+				printf(" hit");
+			}
+		
+		}
+		printf("\n");
+	}
+	printf("\n");
+	
 	if(FRAME_VITIMA==MAX_FRAME){
 		FRAME_VITIMA=0;
 	}
